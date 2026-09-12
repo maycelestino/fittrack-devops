@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run automated tests
+        run: python -m pytest -v
+
+  cd:
+    name: Continuous Delivery
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Create delivery package
+        run: |
+          mkdir -p dist
+          cp -r app dist/app
+          cp requirements.txt dist/requirements.txt
+          cp README.md dist/README.md
+          tar -czf fittrack-devops.tar.gz -C dist .
+
+      - name: Upload delivery artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: fittrack-devops-package
+          path: fittrack-devops.tar.gz
+          retention-days: 7
