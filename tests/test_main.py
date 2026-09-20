@@ -87,3 +87,28 @@ def test_exercise_not_found():
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Exercício não encontrado"}
+
+def test_create_exercise_without_muscle_group():
+    response = client.post(
+        "/exercises",
+        json={
+            "name": "Supino reto"
+        }
+    )
+
+    assert response.status_code == 422
+
+
+def test_update_exercise_not_found():
+    response = client.put(
+        "/exercises/999",
+        json={
+            "name": "Supino inclinado",
+            "muscle_group": "Peito"
+        }
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "Exercício não encontrado"
+    }
